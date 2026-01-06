@@ -15,7 +15,7 @@ export function Tuner() {
   const [selectedString, setSelectedString] = useState<number | null>(null);
   const [detectedStringIndex, setDetectedStringIndex] = useState<number | null>(null);
 
-  const { isTMA, hapticFeedback } = useTelegram();
+  const { isTMA, hapticFeedback, requestMicrophoneAccess } = useTelegram();
   const wasInTuneRef = useRef(false);
 
   const handlePitchDetected = useCallback((pitch: DetectedPitch | null) => {
@@ -57,13 +57,17 @@ export function Tuner() {
     }
   }, []);
 
-  const handleToggle = useCallback(() => {
+  const handleToggle = useCallback(async () => {
     if (isListening) {
       stop();
     } else {
-      start();
+      // Request mic permission first (shows Telegram popup if in TMA)
+      const granted = await requestMicrophoneAccess();
+      if (granted) {
+        start();
+      }
     }
-  }, [isListening, start, stop]);
+  }, [isListening, start, stop, requestMicrophoneAccess]);
 
   // Determine the target note based on selection
   const targetNote = selectedString !== null

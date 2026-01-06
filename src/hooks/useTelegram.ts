@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 
 interface TelegramTheme {
   bgColor: string;
@@ -19,6 +19,7 @@ interface UseTelegramReturn {
   };
   ready: () => void;
   expand: () => void;
+  requestMicrophoneAccess: () => Promise<boolean>;
 }
 
 declare global {
@@ -26,6 +27,7 @@ declare global {
     Telegram?: {
       WebApp?: {
         initData: string;
+        version: string;
         ready: () => void;
         expand: () => void;
         themeParams: {
@@ -42,6 +44,13 @@ declare global {
           selectionChanged: () => void;
         };
         onEvent: (event: string, callback: () => void) => void;
+        showPopup: (params: {
+          title?: string;
+          message: string;
+          buttons?: Array<{ id?: string; type?: string; text?: string }>;
+        }, callback?: (buttonId: string) => void) => void;
+        requestWriteAccess: (callback?: (granted: boolean) => void) => void;
+        isVersionAtLeast: (version: string) => boolean;
       };
     };
   }
@@ -59,6 +68,7 @@ const DEFAULT_THEME: TelegramTheme = {
 export function useTelegram(): UseTelegramReturn {
   const [isTMA, setIsTMA] = useState(false);
   const [theme, setTheme] = useState<TelegramTheme>(DEFAULT_THEME);
+  const micPermissionGranted = useRef(false);
 
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
@@ -125,11 +135,63 @@ export function useTelegram(): UseTelegramReturn {
     window.Telegram?.WebApp?.expand();
   }, []);
 
+  const requestMicrophoneAccess = useCallback(async (): Promise<boolean> => {
+    // Already granted in this session
+    if (micPermissionGranted.current) {
+      return true;
+    }
+
+    const tg = window.Telegram?.WebApp;
+
+    // If running in Telegram, show a popup first to explain why we need mic access
+    if (tg && tg.initData && tg.showPopup) {
+      return new Promise((resolve) => {
+        tg.showPopup(
+          {
+            title: 'Microphone Access',
+            message: 'This tuner needs microphone access to detect the pitch of your instrument. Please allow microphone access when prompted.',
+            buttons: [
+              { id: 'allow', type: 'default', text: 'Continue' },
+              { id: 'cancel', type: 'cancel', text: 'Cancel' },
+            ],
+          },
+          async (buttonId) => {
+            if (buttonId === 'allow') {
+              try {
+                // Request actual browser mic permission
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                // Stop the stream immediately, we just needed permission
+                stream.getTracks().forEach(track => track.stop());
+                micPermissionGranted.current = true;
+                resolve(true);
+              } catch {
+                resolve(false);
+              }
+            } else {
+              resolve(false);
+            }
+          }
+        );
+      });
+    }
+
+    // Not in Telegram or popup not available, try direct permission
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(track => track.stop());
+      micPermissionGranted.current = true;
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+
   return {
     isTMA,
     theme,
     hapticFeedback,
     ready,
     expand,
+    requestMicrophoneAccess,
   };
 }
