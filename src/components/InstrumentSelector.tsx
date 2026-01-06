@@ -67,12 +67,6 @@ export function InstrumentSelector({
         </div>
       )}
 
-      {/* Chromatic mode indicator */}
-      {instrument === 'chromatic' && (
-        <div className="text-center text-sm text-gray-400">
-          Detects any note (A0 - C8)
-        </div>
-      )}
     </div>
   );
 }

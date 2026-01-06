@@ -17,8 +17,8 @@ interface UseAudioAnalyzerReturn {
 }
 
 const BUFFER_SIZE = 4096;
-const SMOOTHING_FACTOR = 0.4;
-const MIN_CLARITY = 0.65;
+const SMOOTHING_FACTOR = 0.35;
+const MIN_CLARITY = 0.5;
 const NOTE_HOLD_TIME = 1500;
 
 export function useAudioAnalyzer({
@@ -71,8 +71,8 @@ export function useAudioAnalyzer({
     const now = Date.now();
     const currentTuning = tuningRef.current;
 
-    // Check if there's enough signal
-    if (!hasSignal(buffer, 0.008)) {
+    // Check if there's enough signal (very sensitive)
+    if (!hasSignal(buffer, 0.003)) {
       if (lastPitchRef.current && now - lastPitchTimeRef.current < NOTE_HOLD_TIME) {
         // Keep showing the last pitch
       } else if (lastPitchRef.current) {

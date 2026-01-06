@@ -76,9 +76,9 @@ export function Tuner() {
   const displayCents = detectedPitch?.cents ?? 0;
 
   return (
-    <div className="flex flex-col h-full px-4 py-6">
+    <div className="flex flex-col h-full px-4 py-4 overflow-hidden">
       {/* Instrument & Tuning Selection */}
-      <div className="mb-6">
+      <div className="mb-4 flex-shrink-0">
         <InstrumentSelector
           instrument={instrument}
           tuning={tuning}
@@ -88,9 +88,9 @@ export function Tuner() {
       </div>
 
       {/* Main Tuner Display */}
-      <div className="flex-1 flex flex-col justify-center">
+      <div className="flex-1 flex flex-col justify-center min-h-0 overflow-auto">
         {/* Tuner Needle */}
-        <div className="mb-4">
+        <div className="mb-2 flex-shrink-0">
           <TunerNeedle
             cents={displayCents}
             isActive={isListening && detectedPitch !== null}
@@ -98,7 +98,7 @@ export function Tuner() {
         </div>
 
         {/* Note Display */}
-        <div className="mb-6">
+        <div className="mb-3 flex-shrink-0">
           <NoteDisplay
             detectedPitch={detectedPitch}
             targetNote={targetNote}
@@ -106,7 +106,7 @@ export function Tuner() {
         </div>
 
         {/* String Selector or Chromatic Notes */}
-        <div className="mb-6">
+        <div className="mb-2 flex-shrink-0">
           {instrument === 'chromatic' ? (
             <ChromaticNotes
               detectedNote={detectedPitch?.note ?? null}
@@ -124,7 +124,7 @@ export function Tuner() {
       </div>
 
       {/* Start/Stop Button */}
-      <div className="mt-auto">
+      <div className="flex-shrink-0 pt-2">
         {error && (
           <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-300 text-sm text-center">
             {error}
@@ -134,20 +134,20 @@ export function Tuner() {
         <button
           onClick={handleToggle}
           className={`
-            w-full py-4 rounded-xl font-bold text-lg transition-all
+            w-full py-3 rounded-xl font-bold text-base transition-all
             ${isListening
               ? 'bg-red-600 hover:bg-red-700 text-white'
               : 'bg-indigo-600 hover:bg-indigo-700 text-white'
             }
           `}
         >
-          {isListening ? 'Stop Tuning' : 'Start Tuning'}
+          {isListening ? 'Stop' : 'Start Tuning'}
         </button>
 
-        <p className="text-center text-xs text-gray-500 mt-3">
+        <p className="text-center text-xs text-gray-500 mt-2 pb-1">
           {isListening
-            ? 'Listening... Play a string'
-            : 'Tap to start using your microphone'
+            ? 'Listening...'
+            : 'Tap to use microphone'
           }
         </p>
       </div>

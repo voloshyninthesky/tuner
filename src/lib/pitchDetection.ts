@@ -14,7 +14,7 @@ export interface PitchResult {
   clarity: number;
 }
 
-const DEFAULT_THRESHOLD = 0.2;
+const DEFAULT_THRESHOLD = 0.25;
 const MIN_FREQUENCY = 27.5; // A0
 const MAX_FREQUENCY = 2000; // Limit max frequency for instruments
 
@@ -126,7 +126,7 @@ export function detectPitch(
 /**
  * Check if the audio buffer has enough signal to analyze
  */
-export function hasSignal(buffer: Float32Array, threshold: number = 0.01): boolean {
+export function hasSignal(buffer: Float32Array, threshold: number = 0.003): boolean {
   let sum = 0;
   for (let i = 0; i < buffer.length; i++) {
     sum += buffer[i] * buffer[i];
