@@ -9,6 +9,7 @@ interface InstrumentSelectorProps {
 }
 
 const INSTRUMENTS: { id: Instrument; label: string; icon: string }[] = [
+  { id: 'chromatic', label: 'All', icon: '🎵' },
   { id: 'guitar', label: 'Guitar', icon: '🎸' },
   { id: 'bass', label: 'Bass', icon: '🎸' },
   { id: 'ukulele', label: 'Ukulele', icon: '🪕' },
@@ -21,17 +22,18 @@ export function InstrumentSelector({
   onTuningChange
 }: InstrumentSelectorProps) {
   const tunings = getTuningsForInstrument(instrument);
+  const showTuningSelector = instrument !== 'chromatic' && tunings.length > 0;
 
   return (
     <div className="space-y-4">
       {/* Instrument tabs */}
-      <div className="flex justify-center gap-2">
+      <div className="flex justify-center gap-1 sm:gap-2">
         {INSTRUMENTS.map((inst) => (
           <button
             key={inst.id}
             onClick={() => onInstrumentChange(inst.id)}
             className={`
-              px-4 py-2 rounded-lg font-medium transition-all
+              px-3 py-2 rounded-lg font-medium transition-all text-sm sm:text-base
               ${instrument === inst.id
                 ? 'bg-indigo-600 text-white'
                 : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white'
@@ -44,24 +46,33 @@ export function InstrumentSelector({
         ))}
       </div>
 
-      {/* Tuning dropdown */}
-      <div className="flex justify-center">
-        <select
-          value={tuning.id}
-          onChange={(e) => onTuningChange(e.target.value)}
-          className="
-            bg-gray-800 text-white px-4 py-2 rounded-lg
-            border border-gray-700 focus:border-indigo-500 focus:outline-none
-            cursor-pointer
-          "
-        >
-          {tunings.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.name} ({t.strings.map(s => s.name).join(' ')})
-            </option>
-          ))}
-        </select>
-      </div>
+      {/* Tuning dropdown - only show for instruments with tunings */}
+      {showTuningSelector && (
+        <div className="flex justify-center">
+          <select
+            value={tuning.id}
+            onChange={(e) => onTuningChange(e.target.value)}
+            className="
+              bg-gray-800 text-white px-4 py-2 rounded-lg
+              border border-gray-700 focus:border-indigo-500 focus:outline-none
+              cursor-pointer
+            "
+          >
+            {tunings.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name} ({t.strings.map(s => s.name).join(' ')})
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Chromatic mode indicator */}
+      {instrument === 'chromatic' && (
+        <div className="text-center text-sm text-gray-400">
+          Detects any note (A0 - C8)
+        </div>
+      )}
     </div>
   );
 }

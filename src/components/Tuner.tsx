@@ -7,10 +7,11 @@ import { TunerNeedle } from './TunerNeedle';
 import { NoteDisplay } from './NoteDisplay';
 import { StringSelector } from './StringSelector';
 import { InstrumentSelector } from './InstrumentSelector';
+import { ChromaticNotes } from './ChromaticNotes';
 
 export function Tuner() {
-  const [instrument, setInstrument] = useState<Instrument>('guitar');
-  const [tuning, setTuning] = useState<Tuning>(getTuningsForInstrument('guitar')[0]);
+  const [instrument, setInstrument] = useState<Instrument>('chromatic');
+  const [tuning, setTuning] = useState<Tuning>(getTuningsForInstrument('chromatic')[0]);
   const [selectedString, setSelectedString] = useState<number | null>(null);
   const [detectedStringIndex, setDetectedStringIndex] = useState<number | null>(null);
 
@@ -76,14 +77,6 @@ export function Tuner() {
 
   return (
     <div className="flex flex-col h-full px-4 py-6">
-      {/* Header */}
-      <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold text-white">String Tuner</h1>
-        <p className="text-sm text-gray-400 mt-1">
-          {isTMA ? 'Telegram Mini App' : 'Web App'}
-        </p>
-      </div>
-
       {/* Instrument & Tuning Selection */}
       <div className="mb-6">
         <InstrumentSelector
@@ -112,14 +105,21 @@ export function Tuner() {
           />
         </div>
 
-        {/* String Selector */}
+        {/* String Selector or Chromatic Notes */}
         <div className="mb-6">
-          <StringSelector
-            tuning={tuning}
-            selectedString={selectedString}
-            detectedStringIndex={isListening ? detectedStringIndex : null}
-            onSelectString={setSelectedString}
-          />
+          {instrument === 'chromatic' ? (
+            <ChromaticNotes
+              detectedNote={detectedPitch?.note ?? null}
+              isActive={isListening && detectedPitch !== null}
+            />
+          ) : (
+            <StringSelector
+              tuning={tuning}
+              selectedString={selectedString}
+              detectedStringIndex={isListening ? detectedStringIndex : null}
+              onSelectString={setSelectedString}
+            />
+          )}
         </div>
       </div>
 

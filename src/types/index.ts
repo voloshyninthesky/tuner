@@ -1,4 +1,4 @@
-export type Instrument = 'guitar' | 'bass' | 'ukulele';
+export type Instrument = 'chromatic' | 'guitar' | 'bass' | 'ukulele';
 
 export interface Note {
   name: string;

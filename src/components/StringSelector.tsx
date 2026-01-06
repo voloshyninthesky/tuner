@@ -15,6 +15,11 @@ export function StringSelector({
 }: StringSelectorProps) {
   const stringCount = tuning.strings.length;
 
+  // Don't render for chromatic mode
+  if (tuning.instrument === 'chromatic' || stringCount === 0) {
+    return null;
+  }
+
   return (
     <div className="w-full max-w-xs mx-auto">
       <div className="text-xs text-gray-400 text-center mb-2">

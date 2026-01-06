@@ -41,6 +41,12 @@ export function frequencyToNote(frequency: number): { note: Note; cents: number 
 }
 
 export function findClosestStringNote(frequency: number, tuning: Tuning): { note: Note; cents: number; stringIndex: number } {
+  // For chromatic mode, just return the closest chromatic note
+  if (tuning.instrument === 'chromatic') {
+    const { note, cents } = frequencyToNote(frequency);
+    return { note, cents, stringIndex: -1 };
+  }
+
   let closestNote = tuning.strings[0];
   let closestCents = Infinity;
   let stringIndex = 0;
@@ -60,6 +66,16 @@ export function findClosestStringNote(frequency: number, tuning: Tuning): { note
     stringIndex
   };
 }
+
+// Chromatic tuning (no specific strings, just detect any note)
+export const CHROMATIC_TUNINGS: Tuning[] = [
+  {
+    id: 'chromatic',
+    name: 'Chromatic',
+    instrument: 'chromatic',
+    strings: [] // No strings for chromatic mode
+  }
+];
 
 // Guitar tunings (strings from low to high: 6 to 1)
 export const GUITAR_TUNINGS: Tuning[] = [
@@ -240,7 +256,7 @@ export const UKULELE_TUNINGS: Tuning[] = [
   },
 ];
 
-export const ALL_TUNINGS: Tuning[] = [...GUITAR_TUNINGS, ...BASS_TUNINGS, ...UKULELE_TUNINGS];
+export const ALL_TUNINGS: Tuning[] = [...CHROMATIC_TUNINGS, ...GUITAR_TUNINGS, ...BASS_TUNINGS, ...UKULELE_TUNINGS];
 
 export function getTuningsForInstrument(instrument: Instrument): Tuning[] {
   return ALL_TUNINGS.filter(t => t.instrument === instrument);
