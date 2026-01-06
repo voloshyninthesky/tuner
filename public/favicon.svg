@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="64" fill="#1a1a2e"/>
+  <circle cx="256" cy="280" r="160" fill="none" stroke="#374151" stroke-width="16"/>
+  <path d="M 256 280 L 256 140" stroke="#4f46e5" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="256" cy="280" r="24" fill="#4f46e5"/>
+  <circle cx="256" cy="120" r="8" fill="#22c55e"/>
+  <text x="256" y="420" text-anchor="middle" fill="#ffffff" font-family="system-ui" font-size="48" font-weight="bold">TUNER</text>
+</svg>
