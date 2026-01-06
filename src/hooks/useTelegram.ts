@@ -141,41 +141,7 @@ export function useTelegram(): UseTelegramReturn {
       return true;
     }
 
-    const tg = window.Telegram?.WebApp;
-
-    // If running in Telegram, show a popup first to explain why we need mic access
-    if (tg && tg.initData && tg.showPopup) {
-      return new Promise((resolve) => {
-        tg.showPopup(
-          {
-            title: 'Microphone Access',
-            message: 'This tuner needs microphone access to detect the pitch of your instrument. Please allow microphone access when prompted.',
-            buttons: [
-              { id: 'allow', type: 'default', text: 'Continue' },
-              { id: 'cancel', type: 'cancel', text: 'Cancel' },
-            ],
-          },
-          async (buttonId) => {
-            if (buttonId === 'allow') {
-              try {
-                // Request actual browser mic permission
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                // Stop the stream immediately, we just needed permission
-                stream.getTracks().forEach(track => track.stop());
-                micPermissionGranted.current = true;
-                resolve(true);
-              } catch {
-                resolve(false);
-              }
-            } else {
-              resolve(false);
-            }
-          }
-        );
-      });
-    }
-
-    // Not in Telegram or popup not available, try direct permission
+    // Request mic permission directly - Telegram/browser will show its own dialog
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       stream.getTracks().forEach(track => track.stop());
