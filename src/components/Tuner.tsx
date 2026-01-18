@@ -15,7 +15,7 @@ export function Tuner() {
   const [selectedString, setSelectedString] = useState<number | null>(null);
   const [detectedStringIndex, setDetectedStringIndex] = useState<number | null>(null);
 
-  const { isTMA, isMobile, hapticFeedback, mainButton } = useTelegram();
+  const { isTMA, hapticFeedback } = useTelegram();
   const wasInTuneRef = useRef(false);
 
   const handlePitchDetected = useCallback((pitch: DetectedPitch | null) => {
@@ -83,20 +83,8 @@ export function Tuner() {
       });
   }, [isListening, start, stop]);
 
-  // Use Telegram's Main Button on mobile TMA
-  useEffect(() => {
-    if (isTMA && isMobile) {
-      const buttonText = isListening ? 'Stop' : 'Start Tuning';
-      // Wrap async handler for MainButton compatibility
-      const syncHandler = () => {
-        handleButtonPress();
-      };
-      mainButton.show(buttonText, syncHandler);
-      return () => {
-        mainButton.hide();
-      };
-    }
-  }, [isTMA, isMobile, isListening, handleButtonPress, mainButton]);
+  // Don't use Telegram's Main Button - it breaks the user gesture chain for getUserMedia
+  // Instead, we'll show our custom button on all platforms
 
   // Determine the target note based on selection
   const targetNote = selectedString !== null
@@ -164,34 +152,29 @@ export function Tuner() {
           </div>
         )}
 
-        {!(isTMA && isMobile) && (
-          <button
-            onPointerDown={handleButtonPress}
-            type="button"
-            className={`
-              w-full py-4 rounded-xl font-bold text-lg transition-all
-              cursor-pointer select-none active:scale-[0.98] relative z-50
-              ${isListening
-                ? 'bg-red-600 active:bg-red-700 text-white'
-                : 'bg-indigo-600 active:bg-indigo-700 text-white'
-              }
-            `}
-            style={{
-              touchAction: 'manipulation',
-              WebkitTapHighlightColor: 'transparent',
-              pointerEvents: 'auto',
-              minHeight: '48px'
-            }}
-          >
-            {isListening ? 'Stop' : 'Start Tuning'}
-          </button>
-        )}
+        <button
+          onClick={handleButtonPress}
+          type="button"
+          className={`
+            w-full py-4 rounded-xl font-bold text-lg transition-all
+            cursor-pointer select-none active:scale-[0.98] relative z-50
+            ${isListening
+              ? 'bg-red-600 active:bg-red-700 text-white'
+              : 'bg-indigo-600 active:bg-indigo-700 text-white'
+            }
+          `}
+          style={{
+            touchAction: 'manipulation',
+            WebkitTapHighlightColor: 'transparent',
+            pointerEvents: 'auto',
+            minHeight: '56px'
+          }}
+        >
+          {isListening ? 'Stop' : 'Start Tuning'}
+        </button>
 
         <p className="text-center text-xs text-gray-500 mt-2 pb-1">
-          {isListening
-            ? 'Listening...'
-            : (isTMA && isMobile) ? 'Use button below' : 'Tap to use microphone'
-          }
+          {isListening ? 'Listening...' : 'Tap to use microphone'}
         </p>
       </div>
     </div>
