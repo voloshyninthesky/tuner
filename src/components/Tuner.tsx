@@ -128,7 +128,7 @@ export function Tuner() {
       </div>
 
       {/* Start/Stop Button */}
-      <div className="flex-shrink-0 pt-2">
+      <div className="flex-shrink-0 pt-2 pb-4">
         {error && (
           <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-300 text-sm text-center">
             {error}
@@ -137,13 +137,16 @@ export function Tuner() {
 
         <button
           onClick={handleToggle}
+          type="button"
           className={`
             w-full py-3 rounded-xl font-bold text-base transition-all
+            cursor-pointer select-none active:scale-[0.98]
             ${isListening
               ? 'bg-red-600 hover:bg-red-700 text-white'
               : 'bg-indigo-600 hover:bg-indigo-700 text-white'
             }
           `}
+          style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
         >
           {isListening ? 'Stop' : 'Start Tuning'}
         </button>

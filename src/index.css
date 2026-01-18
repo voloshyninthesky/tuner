@@ -20,6 +20,9 @@ body {
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
   padding-bottom: env(safe-area-inset-bottom, 0);
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 #root {
