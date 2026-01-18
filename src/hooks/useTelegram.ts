@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
 interface TelegramTheme {
   bgColor: string;
@@ -19,7 +19,7 @@ interface UseTelegramReturn {
   };
   ready: () => void;
   expand: () => void;
-  requestMicrophoneAccess: () => Promise<boolean>;
+  requestMicrophoneAccess: () => Promise<MediaStream | null>;
 }
 
 declare global {
@@ -68,7 +68,6 @@ const DEFAULT_THEME: TelegramTheme = {
 export function useTelegram(): UseTelegramReturn {
   const [isTMA, setIsTMA] = useState(false);
   const [theme, setTheme] = useState<TelegramTheme>(DEFAULT_THEME);
-  const micPermissionGranted = useRef(false);
 
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
@@ -135,20 +134,19 @@ export function useTelegram(): UseTelegramReturn {
     window.Telegram?.WebApp?.expand();
   }, []);
 
-  const requestMicrophoneAccess = useCallback(async (): Promise<boolean> => {
-    // Already granted in this session
-    if (micPermissionGranted.current) {
-      return true;
-    }
-
+  const requestMicrophoneAccess = useCallback(async (): Promise<MediaStream | null> => {
     // Request mic permission directly - Telegram/browser will show its own dialog
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      stream.getTracks().forEach(track => track.stop());
-      micPermissionGranted.current = true;
-      return true;
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+        }
+      });
+      return stream;
     } catch {
-      return false;
+      return null;
     }
   }, []);
 

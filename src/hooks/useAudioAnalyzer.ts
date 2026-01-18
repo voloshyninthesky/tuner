@@ -11,7 +11,7 @@ interface UseAudioAnalyzerOptions {
 interface UseAudioAnalyzerReturn {
   isListening: boolean;
   error: string | null;
-  start: () => Promise<void>;
+  start: (stream: MediaStream) => void;
   stop: () => void;
   detectedPitch: DetectedPitch | null;
 }
@@ -118,17 +118,9 @@ export function useAudioAnalyzer({
     animationFrameRef.current = requestAnimationFrame(analyze);
   }, [clearHoldTimeout]);
 
-  const start = useCallback(async () => {
+  const start = useCallback((stream: MediaStream) => {
     try {
       setError(null);
-
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false,
-        }
-      });
 
       streamRef.current = stream;
 
