@@ -57,15 +57,38 @@ export function Tuner() {
     }
   }, []);
 
-  const handleToggle = useCallback(async () => {
+  const touchedRef = useRef(false);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    touchedRef.current = true;
+
     if (isListening) {
       stop();
     } else {
-      // Request mic permission first (shows Telegram popup if in TMA)
-      const stream = await requestMicrophoneAccess();
-      if (stream) {
-        await start(stream);
-      }
+      requestMicrophoneAccess().then(stream => {
+        if (stream) {
+          start(stream);
+        }
+      });
+    }
+  }, [isListening, start, stop, requestMicrophoneAccess]);
+
+  const handleClick = useCallback(() => {
+    // Skip if this was triggered by a touch event
+    if (touchedRef.current) {
+      touchedRef.current = false;
+      return;
+    }
+
+    if (isListening) {
+      stop();
+    } else {
+      requestMicrophoneAccess().then(stream => {
+        if (stream) {
+          start(stream);
+        }
+      });
     }
   }, [isListening, start, stop, requestMicrophoneAccess]);
 
@@ -136,7 +159,8 @@ export function Tuner() {
         )}
 
         <button
-          onClick={handleToggle}
+          onTouchEnd={handleTouchEnd}
+          onClick={handleClick}
           type="button"
           className={`
             w-full py-3 rounded-xl font-bold text-base transition-all
