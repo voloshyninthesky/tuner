@@ -193,6 +193,12 @@ export function useTelegram(): UseTelegramReturn {
   const requestMicrophoneAccess = useCallback(async (): Promise<MediaStream | null> => {
     // Request mic permission directly - Telegram/browser will show its own dialog
     try {
+      // Check if mediaDevices is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.error('getUserMedia not supported');
+        return null;
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: false,
@@ -201,7 +207,8 @@ export function useTelegram(): UseTelegramReturn {
         }
       });
       return stream;
-    } catch {
+    } catch (err) {
+      console.error('Microphone access error:', err);
       return null;
     }
   }, []);

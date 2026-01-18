@@ -57,15 +57,27 @@ export function Tuner() {
     }
   }, []);
 
-  const handleButtonPress = useCallback(() => {
+  const [micError, setMicError] = useState<string | null>(null);
+
+  const handleButtonPress = useCallback(async () => {
+    console.log('Button pressed, isListening:', isListening);
     if (isListening) {
       stop();
     } else {
-      requestMicrophoneAccess().then(stream => {
+      setMicError(null);
+      console.log('Requesting microphone access...');
+      try {
+        const stream = await requestMicrophoneAccess();
+        console.log('Got stream:', stream);
         if (stream) {
-          start(stream);
+          await start(stream);
+        } else {
+          setMicError('Could not access microphone. Please grant permission.');
         }
-      });
+      } catch (err) {
+        console.error('Error in handleButtonPress:', err);
+        setMicError('Error accessing microphone');
+      }
     }
   }, [isListening, start, stop, requestMicrophoneAccess]);
 
@@ -140,9 +152,9 @@ export function Tuner() {
 
       {/* Start/Stop Button - hidden on mobile TMA where we use Telegram's Main Button */}
       <div className="flex-shrink-0 pt-2 pb-4">
-        {error && (
+        {(error || micError) && (
           <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-300 text-sm text-center">
-            {error}
+            {error || micError}
           </div>
         )}
 
