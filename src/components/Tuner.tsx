@@ -64,7 +64,7 @@ export function Tuner() {
       // Request mic permission first (shows Telegram popup if in TMA)
       const stream = await requestMicrophoneAccess();
       if (stream) {
-        start(stream);
+        await start(stream);
       }
     }
   }, [isListening, start, stop, requestMicrophoneAccess]);

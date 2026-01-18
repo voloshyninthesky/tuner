@@ -11,7 +11,7 @@ interface UseAudioAnalyzerOptions {
 interface UseAudioAnalyzerReturn {
   isListening: boolean;
   error: string | null;
-  start: (stream: MediaStream) => void;
+  start: (stream: MediaStream) => Promise<void>;
   stop: () => void;
   detectedPitch: DetectedPitch | null;
 }
@@ -118,7 +118,7 @@ export function useAudioAnalyzer({
     animationFrameRef.current = requestAnimationFrame(analyze);
   }, [clearHoldTimeout]);
 
-  const start = useCallback((stream: MediaStream) => {
+  const start = useCallback(async (stream: MediaStream) => {
     try {
       setError(null);
 
@@ -126,6 +126,11 @@ export function useAudioAnalyzer({
 
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       audioContextRef.current = audioContext;
+
+      // Resume AudioContext if suspended (required on mobile/TMA)
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
 
       const analyser = audioContext.createAnalyser();
       analyser.fftSize = BUFFER_SIZE * 2;
@@ -142,7 +147,9 @@ export function useAudioAnalyzer({
 
       animationFrameRef.current = requestAnimationFrame(analyze);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to access microphone';
+      // Clean up stream if setup fails
+      stream.getTracks().forEach(track => track.stop());
+      const message = err instanceof Error ? err.message : 'Failed to start audio';
       setError(message);
       console.error('Audio analyzer error:', err);
     }
