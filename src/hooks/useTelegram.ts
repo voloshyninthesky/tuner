@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 
 interface TelegramTheme {
   bgColor: string;
@@ -11,11 +11,17 @@ interface TelegramTheme {
 
 interface UseTelegramReturn {
   isTMA: boolean;
+  isMobile: boolean;
   theme: TelegramTheme;
   hapticFeedback: {
     impactOccurred: (style: 'light' | 'medium' | 'heavy' | 'rigid' | 'soft') => void;
     notificationOccurred: (type: 'error' | 'success' | 'warning') => void;
     selectionChanged: () => void;
+  };
+  mainButton: {
+    show: (text: string, onClick: () => void) => void;
+    hide: () => void;
+    setText: (text: string) => void;
   };
   ready: () => void;
   expand: () => void;
@@ -28,6 +34,7 @@ declare global {
       WebApp?: {
         initData: string;
         version: string;
+        platform: string;
         ready: () => void;
         expand: () => void;
         themeParams: {
@@ -42,6 +49,21 @@ declare global {
           impactOccurred: (style: string) => void;
           notificationOccurred: (type: string) => void;
           selectionChanged: () => void;
+        };
+        MainButton: {
+          text: string;
+          color: string;
+          textColor: string;
+          isVisible: boolean;
+          isActive: boolean;
+          setText: (text: string) => void;
+          onClick: (callback: () => void) => void;
+          offClick: (callback: () => void) => void;
+          show: () => void;
+          hide: () => void;
+          enable: () => void;
+          disable: () => void;
+          setParams: (params: { text?: string; color?: string; text_color?: string; is_active?: boolean; is_visible?: boolean }) => void;
         };
         onEvent: (event: string, callback: () => void) => void;
         showPopup: (params: {
@@ -67,13 +89,18 @@ const DEFAULT_THEME: TelegramTheme = {
 
 export function useTelegram(): UseTelegramReturn {
   const [isTMA, setIsTMA] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [theme, setTheme] = useState<TelegramTheme>(DEFAULT_THEME);
+  const mainButtonCallbackRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
 
     if (tg && tg.initData) {
       setIsTMA(true);
+      // Check if running on mobile platform
+      const platform = tg.platform;
+      setIsMobile(platform === 'ios' || platform === 'android');
 
       // Get theme from Telegram
       const themeParams = tg.themeParams;
@@ -134,6 +161,35 @@ export function useTelegram(): UseTelegramReturn {
     window.Telegram?.WebApp?.expand();
   }, []);
 
+  const mainButton = {
+    show: useCallback((text: string, onClick: () => void) => {
+      const tg = window.Telegram?.WebApp;
+      if (tg?.MainButton) {
+        // Remove previous callback if exists
+        if (mainButtonCallbackRef.current) {
+          tg.MainButton.offClick(mainButtonCallbackRef.current);
+        }
+        mainButtonCallbackRef.current = onClick;
+        tg.MainButton.setText(text);
+        tg.MainButton.onClick(onClick);
+        tg.MainButton.show();
+      }
+    }, []),
+    hide: useCallback(() => {
+      const tg = window.Telegram?.WebApp;
+      if (tg?.MainButton) {
+        if (mainButtonCallbackRef.current) {
+          tg.MainButton.offClick(mainButtonCallbackRef.current);
+          mainButtonCallbackRef.current = null;
+        }
+        tg.MainButton.hide();
+      }
+    }, []),
+    setText: useCallback((text: string) => {
+      window.Telegram?.WebApp?.MainButton?.setText(text);
+    }, []),
+  };
+
   const requestMicrophoneAccess = useCallback(async (): Promise<MediaStream | null> => {
     // Request mic permission directly - Telegram/browser will show its own dialog
     try {
@@ -152,8 +208,10 @@ export function useTelegram(): UseTelegramReturn {
 
   return {
     isTMA,
+    isMobile,
     theme,
     hapticFeedback,
+    mainButton,
     ready,
     expand,
     requestMicrophoneAccess,
