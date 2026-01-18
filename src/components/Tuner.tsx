@@ -15,7 +15,7 @@ export function Tuner() {
   const [selectedString, setSelectedString] = useState<number | null>(null);
   const [detectedStringIndex, setDetectedStringIndex] = useState<number | null>(null);
 
-  const { isTMA, isMobile, hapticFeedback, mainButton, requestMicrophoneAccess } = useTelegram();
+  const { isTMA, isMobile, hapticFeedback, mainButton } = useTelegram();
   const wasInTuneRef = useRef(false);
 
   const handlePitchDetected = useCallback((pitch: DetectedPitch | null) => {
@@ -59,27 +59,29 @@ export function Tuner() {
 
   const [micError, setMicError] = useState<string | null>(null);
 
-  const handleButtonPress = useCallback(async () => {
-    console.log('Button pressed, isListening:', isListening);
+  const handleButtonPress = useCallback(() => {
     if (isListening) {
       stop();
-    } else {
-      setMicError(null);
-      console.log('Requesting microphone access...');
-      try {
-        const stream = await requestMicrophoneAccess();
-        console.log('Got stream:', stream);
-        if (stream) {
-          await start(stream);
-        } else {
-          setMicError('Could not access microphone. Please grant permission.');
-        }
-      } catch (err) {
-        console.error('Error in handleButtonPress:', err);
-        setMicError('Error accessing microphone');
-      }
+      return;
     }
-  }, [isListening, start, stop, requestMicrophoneAccess]);
+
+    setMicError(null);
+
+    // Call getUserMedia directly in the click handler (required for mobile WebViews)
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setMicError('Microphone not supported');
+      return;
+    }
+
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(stream => {
+        start(stream);
+      })
+      .catch(err => {
+        console.error('Mic error:', err);
+        setMicError('Microphone access denied. Please allow in Telegram settings.');
+      });
+  }, [isListening, start, stop]);
 
   // Use Telegram's Main Button on mobile TMA
   useEffect(() => {
