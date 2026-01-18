@@ -85,7 +85,11 @@ export function Tuner() {
   useEffect(() => {
     if (isTMA && isMobile) {
       const buttonText = isListening ? 'Stop' : 'Start Tuning';
-      mainButton.show(buttonText, handleButtonPress);
+      // Wrap async handler for MainButton compatibility
+      const syncHandler = () => {
+        handleButtonPress();
+      };
+      mainButton.show(buttonText, syncHandler);
       return () => {
         mainButton.hide();
       };

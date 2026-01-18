@@ -196,19 +196,18 @@ export function useTelegram(): UseTelegramReturn {
       // Check if mediaDevices is available
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         console.error('getUserMedia not supported');
+        alert('Microphone not supported on this device');
         return null;
       }
 
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false,
-        }
-      });
+      console.log('Calling getUserMedia...');
+      // Try simple audio first, then with constraints
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      console.log('getUserMedia success:', stream.id);
       return stream;
     } catch (err) {
       console.error('Microphone access error:', err);
+      alert('Microphone error: ' + (err instanceof Error ? err.message : String(err)));
       return null;
     }
   }, []);
