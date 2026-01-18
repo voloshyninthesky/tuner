@@ -57,30 +57,7 @@ export function Tuner() {
     }
   }, []);
 
-  const touchedRef = useRef(false);
-
-  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    e.preventDefault();
-    touchedRef.current = true;
-
-    if (isListening) {
-      stop();
-    } else {
-      requestMicrophoneAccess().then(stream => {
-        if (stream) {
-          start(stream);
-        }
-      });
-    }
-  }, [isListening, start, stop, requestMicrophoneAccess]);
-
-  const handleClick = useCallback(() => {
-    // Skip if this was triggered by a touch event
-    if (touchedRef.current) {
-      touchedRef.current = false;
-      return;
-    }
-
+  const handleButtonPress = useCallback(() => {
     if (isListening) {
       stop();
     } else {
@@ -159,18 +136,22 @@ export function Tuner() {
         )}
 
         <button
-          onTouchEnd={handleTouchEnd}
-          onClick={handleClick}
+          onPointerDown={handleButtonPress}
           type="button"
           className={`
-            w-full py-3 rounded-xl font-bold text-base transition-all
-            cursor-pointer select-none active:scale-[0.98]
+            w-full py-4 rounded-xl font-bold text-lg transition-all
+            cursor-pointer select-none active:scale-[0.98] relative z-50
             ${isListening
-              ? 'bg-red-600 hover:bg-red-700 text-white'
-              : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+              ? 'bg-red-600 active:bg-red-700 text-white'
+              : 'bg-indigo-600 active:bg-indigo-700 text-white'
             }
           `}
-          style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+          style={{
+            touchAction: 'manipulation',
+            WebkitTapHighlightColor: 'transparent',
+            pointerEvents: 'auto',
+            minHeight: '48px'
+          }}
         >
           {isListening ? 'Stop' : 'Start Tuning'}
         </button>
